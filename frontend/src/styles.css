@@ -21,6 +21,43 @@ header {
   align-items: center;
   padding: 1rem 0;
   margin-bottom: 1rem;
+  border-bottom: 1px solid #e7eaee;
+}
+
+.nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.nav a {
+  color: #52606d;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+}
+
+.nav a:hover {
+  background: #eef1f5;
+}
+
+.nav a.active {
+  background: #e3ecff;
+  color: #2456d6;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #52606d;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: #2456d6;
 }
 
 .brand {
@@ -28,6 +65,25 @@ header {
   font-weight: 700;
   color: #1f2933;
   text-decoration: none;
+}
+
+.tagline {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: #616e7c;
+}
+
+.count {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  color: #616e7c;
+}
+
+.ref {
+  display: block;
+  font-size: 0.78rem;
+  color: #616e7c;
+  margin-top: 0.15rem;
 }
 
 a {
@@ -65,6 +121,24 @@ td {
   padding: 0.65rem 0.9rem;
   border-bottom: 1px solid #e7eaee;
   font-size: 0.92rem;
+  transition: background-color 0.5s;
+}
+
+.row-link {
+  cursor: pointer;
+}
+
+.row-link:hover td {
+  background: #f0f4fa;
+}
+
+.row-link a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+tr.flash td {
+  background: #fff3d6;
 }
 
 th {
@@ -100,8 +174,22 @@ tr:last-child td {
 }
 
 .badge.force-closed {
-  background: #fde4e1;
-  color: #ba2525;
+  background: #fff3d6;
+  color: #94630b;
+}
+
+.mode {
+  margin-left: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9aa5b1;
+}
+
+.form .toggle {
+  font-weight: 600;
+  margin: 0.2rem 0 0.9rem;
 }
 
 .error {
@@ -279,4 +367,55 @@ section {
 .tag.extension {
   background: #fff3d6;
   color: #94630b;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  background: #fff;
+  border: 1px solid #e7eaee;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #52606d;
+  cursor: pointer;
+}
+
+.tab:hover {
+  border-color: #cbd2d9;
+}
+
+.tab.active {
+  background: #2456d6;
+  border-color: #2456d6;
+  color: #fff;
+}
+
+.banner {
+  background: #fff3d6;
+  color: #94630b;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.danger {
+  color: #ba2525;
+}
+
+.notice {
+  color: #19763c;
+  font-weight: 600;
+}
+
+.closed-note {
+  font-weight: 600;
 }

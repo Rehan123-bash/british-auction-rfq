@@ -1,5 +1,14 @@
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+export const money = (n) => '$' + Math.round(n).toLocaleString('en-US')
+
+// "22 Oct, 9:04 PM" — no seconds, no year
+export const when = (ts) =>
+  new Date(ts)
+    .toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+    .replace(' am', ' AM')
+    .replace(' pm', ' PM')
+
 async function request(path, options) {
   const res = await fetch(API + path, options)
   const data = await res.json()
