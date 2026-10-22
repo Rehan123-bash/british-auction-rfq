@@ -1,6 +1,12 @@
 import asyncio
 import json
 import os
+import sys
+
+# vercel imports this file from outside backend/, so make sibling imports resolvable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
@@ -10,14 +16,27 @@ from sqlalchemy.orm import Session
 
 import auction
 import models
+import seed
 from database import Base, SessionLocal, engine, get_db, utcnow
 from schemas import BidCreate, RfqCreate
 
 load_dotenv()
 
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="RFQ Auction")
+@asynccontextmanager
+async def lifespan(_app):
+    # db work happens at startup, not import — a db hiccup should show in the logs,
+    # not kill the serverless function's import. seeds demo data on first boot.
+    try:
+        Base.metadata.create_all(bind=engine)
+        with SessionLocal() as db:
+            seed.run(db)
+    except Exception as e:
+        print(f"db init failed: {e}")
+    yield
+
+
+app = FastAPI(title="RFQ Auction", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -173,9 +192,10 @@ def submit_bid(rfq_id: int, body: BidCreate, db: Session = Depends(get_db)):
 
 @app.get("/rfqs/{rfq_id}/stream")
 async def stream_rfq(rfq_id: int):
-    # each tick opens a short-lived session so the stream always reads fresh state
+    # each tick opens a short-lived session so the stream always reads fresh state.
+    # the stream ends cleanly after 4 minutes (serverless duration cap); EventSource reconnects.
     async def events():
-        while True:
+        for _ in range(240):
             db = SessionLocal()
             try:
                 rfq = db.get(models.Rfq, rfq_id)
