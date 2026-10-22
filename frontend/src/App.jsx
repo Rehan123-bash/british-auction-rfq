@@ -1,5 +1,6 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import AuctionList from './pages/AuctionList'
+import CreateRfq from './pages/CreateRfq'
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       </header>
       <Routes>
         <Route path="/" element={<AuctionList />} />
+        <Route path="/create" element={<CreateRfq />} />
       </Routes>
     </div>
   )

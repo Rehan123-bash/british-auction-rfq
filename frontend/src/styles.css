@@ -107,3 +107,71 @@ tr:last-child td {
 .error {
   color: #ba2525;
 }
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.form {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.form h2 {
+  margin-top: 0;
+}
+
+.form label {
+  display: block;
+  margin-bottom: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form input,
+.form select {
+  display: block;
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.form .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form fieldset {
+  border: 1px solid #e7eaee;
+  border-radius: 6px;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem 0.9rem;
+}
+
+.form fieldset legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.form .radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 1.25rem 0 0;
+  font-weight: 400;
+}
+
+.form .radio input {
+  display: inline;
+  width: auto;
+  margin: 0;
+}
