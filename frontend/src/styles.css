@@ -1,0 +1,109 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f5f6f8;
+  color: #1f2933;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2933;
+  text-decoration: none;
+}
+
+a {
+  color: #2456d6;
+}
+
+.button {
+  display: inline-block;
+  background: #2456d6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #1d46b0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid #e7eaee;
+  font-size: 0.92rem;
+}
+
+th {
+  background: #eef1f5;
+  font-weight: 600;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge.upcoming {
+  background: #e3ecff;
+  color: #2456d6;
+}
+
+.badge.active {
+  background: #dcf5e4;
+  color: #19763c;
+}
+
+.badge.closed {
+  background: #eceff3;
+  color: #52606d;
+}
+
+.badge.force-closed {
+  background: #fde4e1;
+  color: #ba2525;
+}
+
+.error {
+  color: #ba2525;
+}
