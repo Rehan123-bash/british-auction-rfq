@@ -16,6 +16,8 @@ to the deadline extend the auction automatically — up to a hard forced-close c
   a trigger (`any_bid`, `any_rank_change` or `l1_change`). A qualifying bid inside the last
   X minutes moves the close forward by Y minutes, never past `forced_close_at`. Every bid and
   every extension (with its reason) lands in an activity log.
+- **British auction is a per-RFQ option**: with it off, the RFQ is a standard one — no extension
+  config, no forced close of its own, it simply closes at its bid close time.
 - **Live updates**: the details page subscribes to a Server-Sent Events stream that pushes the
   full auction state every second, so rankings, the countdown and status flips appear without
   a refresh.

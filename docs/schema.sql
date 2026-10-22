@@ -5,16 +5,19 @@
 CREATE TABLE rfqs (
     id                     SERIAL PRIMARY KEY,
     name                   VARCHAR NOT NULL,
-    reference_id           VARCHAR NOT NULL,
     bid_start_at           TIMESTAMP NOT NULL,
     bid_close_at           TIMESTAMP NOT NULL,
-    forced_close_at        TIMESTAMP NOT NULL,   -- hard ceiling, close can never pass this
+    forced_close_at        TIMESTAMP NOT NULL,   -- hard ceiling; equals bid_close_at for standard rfqs
     service_date           TIMESTAMP NOT NULL,   -- pickup / service date
 
-    -- extension config: a qualifying bid in the last X minutes extends the close by Y minutes
-    trigger_window_minutes INTEGER NOT NULL,     -- X
-    extension_minutes      INTEGER NOT NULL,     -- Y
-    extension_trigger      VARCHAR NOT NULL,     -- any_bid | any_rank_change | l1_change
+    -- false = standard rfq: no extensions, closes exactly at bid_close_at
+    british_auction        BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- extension config: a qualifying bid in the last X minutes extends the close by Y minutes.
+    -- all three are null when british_auction is false
+    trigger_window_minutes INTEGER,              -- X
+    extension_minutes      INTEGER,              -- Y
+    extension_trigger      VARCHAR,              -- any_bid | any_rank_change | l1_change
 
     -- starts equal to bid_close_at, moves forward on extensions, capped at forced_close_at
     current_close_at       TIMESTAMP NOT NULL
