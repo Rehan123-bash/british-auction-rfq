@@ -9,6 +9,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./rfq.db")
 
+# render's postgres urls start with postgres://, which sqlalchemy 2 no longer accepts
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # sqlite refuses cross-thread use by default; fastapi runs handlers in a threadpool
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
