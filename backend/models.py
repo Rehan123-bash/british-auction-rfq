@@ -1,8 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 
-from database import Base
+from database import Base, utcnow
 
 
 class Rfq(Base):
@@ -37,7 +35,7 @@ class Bid(Base):
     total = Column(Float, nullable=False)
     transit_time_days = Column(Integer, nullable=False)
     quote_valid_until = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
 
 class ActivityLog(Base):
@@ -47,4 +45,4 @@ class ActivityLog(Base):
     rfq_id = Column(Integer, ForeignKey("rfqs.id"), nullable=False)
     type = Column(String, nullable=False)  # bid | extension
     message = Column(String, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
