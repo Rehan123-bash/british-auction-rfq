@@ -8,8 +8,8 @@ def status(rfq, now):
         return "Upcoming"
     if now < rfq.current_close_at:
         return "Active"
-    # closed: did it run out naturally or hit the forced ceiling?
-    if rfq.current_close_at < rfq.forced_close_at:
+    # standard rfqs just close; a british one that got pinned at the ceiling is force closed
+    if not rfq.british_auction or rfq.current_close_at < rfq.forced_close_at:
         return "Closed"
     return "Force Closed"
 
@@ -25,6 +25,9 @@ def ranking(db, rfq_id):
 def maybe_extend(rfq, ranking_before, ranking_after, now):
     """Called right after a bid lands. ranking_before/after are carrier names in rank order.
     Mutates rfq.current_close_at and returns {old_close, new_close, reason}, or None."""
+    if not rfq.british_auction:
+        return None
+
     window_start = rfq.current_close_at - timedelta(minutes=rfq.trigger_window_minutes)
     if not (window_start <= now < rfq.current_close_at):
         return None
@@ -39,7 +42,10 @@ def maybe_extend(rfq, ranking_before, ranking_after, now):
         before_l1 = ranking_before[0] if ranking_before else None
         after_l1 = ranking_after[0] if ranking_after else None
         fired = before_l1 != after_l1
-        reason = f"L1 changed from {before_l1} to {after_l1}"
+        if before_l1 is None:
+            reason = f"{after_l1} set the first L1"
+        else:
+            reason = f"L1 changed from {before_l1} to {after_l1}"
     if not fired:
         return None
 

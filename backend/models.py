@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 
 from database import Base, utcnow
 
@@ -8,16 +8,19 @@ class Rfq(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    reference_id = Column(String, nullable=False)
     bid_start_at = Column(DateTime, nullable=False)
     bid_close_at = Column(DateTime, nullable=False)
     forced_close_at = Column(DateTime, nullable=False)
     service_date = Column(DateTime, nullable=False)
 
+    # when false this is a standard rfq: no extensions, forced_close_at == bid_close_at
+    british_auction = Column(Boolean, nullable=False, default=True)
+
     # extension config: X minutes before close, extend by Y minutes, on trigger
-    trigger_window_minutes = Column(Integer, nullable=False)
-    extension_minutes = Column(Integer, nullable=False)
-    extension_trigger = Column(String, nullable=False)  # any_bid | any_rank_change | l1_change
+    # all three are null when british_auction is false
+    trigger_window_minutes = Column(Integer)
+    extension_minutes = Column(Integer)
+    extension_trigger = Column(String)  # any_bid | any_rank_change | l1_change
 
     # starts equal to bid_close_at, moves forward on extensions, capped at forced_close_at
     current_close_at = Column(DateTime, nullable=False)

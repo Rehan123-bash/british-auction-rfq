@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 import auction
@@ -42,8 +41,9 @@ def rfq_detail(db, rfq):
     return {
         "id": rfq.id,
         "name": rfq.name,
-        "reference_id": rfq.reference_id,
+        "reference_id": f"RFQ-{rfq.id:04d}",
         "status": auction.status(rfq, now),
+        "british_auction": rfq.british_auction,
         "bid_start_at": iso(rfq.bid_start_at),
         "bid_close_at": iso(rfq.bid_close_at),
         "current_close_at": iso(rfq.current_close_at),
@@ -75,9 +75,15 @@ def rfq_detail(db, rfq):
 def create_rfq(body: RfqCreate, db: Session = Depends(get_db)):
     if body.bid_close_at <= body.bid_start_at:
         raise HTTPException(400, "bid_close_at must be after bid_start_at")
-    if body.forced_close_at <= body.bid_close_at:
-        raise HTTPException(400, "forced_close_at must be after bid_close_at")
-    rfq = models.Rfq(**body.model_dump(), current_close_at=body.bid_close_at)
+    data = body.model_dump()
+    if body.british_auction:
+        if body.forced_close_at <= body.bid_close_at:
+            raise HTTPException(400, "forced_close_at must be after bid_close_at")
+    else:
+        # a standard rfq cannot extend, so it closes exactly at bid_close_at
+        data.update(forced_close_at=body.bid_close_at, trigger_window_minutes=None,
+                    extension_minutes=None, extension_trigger=None)
+    rfq = models.Rfq(**data, current_close_at=body.bid_close_at)
     db.add(rfq)
     db.commit()
     db.refresh(rfq)
@@ -87,15 +93,29 @@ def create_rfq(body: RfqCreate, db: Session = Depends(get_db)):
 @app.get("/rfqs")
 def list_rfqs(db: Session = Depends(get_db)):
     now = utcnow()
+    rows = [(rfq, auction.status(rfq, now)) for rfq in db.query(models.Rfq).all()]
+
+    group = {"Active": 0, "Upcoming": 1}
+
+    def sort_key(row):
+        rfq, status = row
+        g = group.get(status, 2)
+        ts = rfq.current_close_at.timestamp()
+        # live auctions by soonest close first, finished ones newest first
+        return (g, ts if g < 2 else -ts)
+
     out = []
-    for rfq in db.query(models.Rfq).order_by(models.Rfq.id.desc()).all():
-        # carriers only ever lower their price, so the overall min is the current L1 total
-        lowest = db.query(func.min(models.Bid.total)).filter(models.Bid.rfq_id == rfq.id).scalar()
+    for rfq, status in sorted(rows, key=sort_key):
+        ranked = auction.ranking(db, rfq.id)
+        l1 = ranked[0] if ranked else None
         out.append({
             "id": rfq.id,
             "name": rfq.name,
-            "status": auction.status(rfq, now),
-            "lowest_bid": lowest,
+            "reference_id": f"RFQ-{rfq.id:04d}",
+            "status": status,
+            "british_auction": rfq.british_auction,
+            "lowest_bid": l1.total if l1 else None,
+            "lowest_carrier": l1.carrier_name if l1 else None,
             "current_close_at": iso(rfq.current_close_at),
             "forced_close_at": iso(rfq.forced_close_at),
         })
@@ -147,6 +167,7 @@ def submit_bid(rfq_id: int, body: BidCreate, db: Session = Depends(get_db)):
 
     db.commit()
     return {"id": bid.id, "total": total,
+            "rank": f"L{ranking_after.index(body.carrier_name) + 1}",
             "extended_to": iso(rfq.current_close_at) if ext else None}
 
 
