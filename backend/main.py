@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+import auction
 import models
 from database import Base, engine, get_db
 from schemas import RfqCreate
@@ -27,16 +28,6 @@ app.add_middleware(
 
 def iso(dt):
     return dt.isoformat() + "Z"
-
-
-def rfq_status(rfq, now):
-    if now < rfq.bid_start_at:
-        return "Upcoming"
-    if now < rfq.current_close_at:
-        return "Active"
-    if rfq.current_close_at < rfq.forced_close_at:
-        return "Closed"
-    return "Force Closed"
 
 
 @app.post("/rfqs", status_code=201)
@@ -62,7 +53,7 @@ def list_rfqs(db: Session = Depends(get_db)):
         out.append({
             "id": rfq.id,
             "name": rfq.name,
-            "status": rfq_status(rfq, now),
+            "status": auction.status(rfq, now),
             "lowest_bid": lowest,
             "current_close_at": iso(rfq.current_close_at),
             "forced_close_at": iso(rfq.forced_close_at),
