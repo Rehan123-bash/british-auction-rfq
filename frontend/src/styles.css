@@ -175,3 +175,108 @@ tr:last-child td {
   width: auto;
   margin: 0;
 }
+
+section {
+  margin-top: 1.5rem;
+}
+
+.muted {
+  color: #616e7c;
+  font-size: 0.9rem;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.detail-header h2 {
+  margin: 0 0 0.3rem;
+}
+
+.detail-header p {
+  margin: 0;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.meta {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.meta-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #616e7c;
+  margin-bottom: 0.25rem;
+}
+
+.bid-form {
+  max-width: none;
+  margin: 0;
+}
+
+.form .row.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.total-preview {
+  align-self: end;
+  margin: 0 0 1rem;
+}
+
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  margin-bottom: 0.4rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-size: 0.9rem;
+}
+
+.activity .muted {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.tag.bid {
+  background: #e3ecff;
+  color: #2456d6;
+}
+
+.tag.extension {
+  background: #fff3d6;
+  color: #94630b;
+}
