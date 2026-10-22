@@ -1,8 +1,20 @@
 # RFQ Auction
 
+Live: [frontend](https://british-auction-rfq-two.vercel.app) ·
+[API](https://british-auction-api-yr4n.onrender.com) (interactive API docs at
+[`/docs`](https://british-auction-api-yr4n.onrender.com/docs)). The backend runs on a free tier,
+so the first request after it has been idle takes about a minute.
+
 A reverse-auction platform for freight RFQs. A buyer publishes an RFQ with a bidding window,
 carriers submit quotes against it, the lowest total holds the L1 rank, and bids arriving close
 to the deadline extend the auction automatically — up to a hard forced-close ceiling.
+
+## Deliverables
+
+- HLD: `docs/HLD.pdf`
+- Schema: `docs/schema.sql` (and `backend/models.py`)
+- Backend: `backend/`
+- Frontend: `frontend/`
 
 ## How the auction works
 
@@ -24,8 +36,8 @@ to the deadline extend the auction automatically — up to a hard forced-close c
 
 ## Stack
 
-- **Backend** — Python 3.11, FastAPI, SQLAlchemy 2, uvicorn. SQLite locally, Postgres in
-  production (same code, switched by `DATABASE_URL`).
+- **Backend** — Python 3.12 (3.11+ works), FastAPI, SQLAlchemy 2, uvicorn. SQLite locally,
+  Postgres in production via psycopg 3 (same code, switched by `DATABASE_URL`).
 - **Frontend** — React 18 + Vite, react-router, native `fetch` + `EventSource`, one CSS file.
 
 ## Running locally
@@ -39,8 +51,9 @@ source .venv/bin/activate        # windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 uvicorn main:app --reload --port 8000
-python seed.py                   # optional: demo RFQ closing in 15 minutes
 ```
+
+On first start with an empty database the app seeds a few demo lanes by itself.
 
 Frontend (http://localhost:5173):
 
@@ -80,7 +93,7 @@ All timestamps are ISO-8601 UTC; the frontend formats them for display.
 
 ## Deploy
 
-- **Backend (Render web service)** — root `backend`, build `pip install -r requirements.txt`,
-  start `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set `DATABASE_URL` to the Postgres
-  connection string and `CORS_ORIGINS` to the frontend URL.
-- **Frontend (Vercel)** — root `frontend`, framework Vite. Set `VITE_API_URL` to the Render URL.
+- **Backend** — defined by `render.yaml` (Render → New → Blueprint, pick this repo). Render
+  prompts for `DATABASE_URL` (Postgres) and `CORS_ORIGINS` (the frontend URL).
+- **Frontend (Vercel)** — root `frontend`, framework Vite, env `VITE_API_URL` = the API URL.
+  `frontend/vercel.json` rewrites all routes to `index.html` so client-side routing works.
