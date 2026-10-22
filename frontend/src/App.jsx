@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from 'react-router-dom'
+import AuctionDetail from './pages/AuctionDetail'
 import AuctionList from './pages/AuctionList'
 import CreateRfq from './pages/CreateRfq'
 
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<AuctionList />} />
         <Route path="/create" element={<CreateRfq />} />
+        <Route path="/rfqs/:id" element={<AuctionDetail />} />
       </Routes>
     </div>
   )
