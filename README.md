@@ -15,7 +15,7 @@ to the deadline extend the auction automatically — up to a hard forced-close c
 
 ## Design documents & deliverables
 
-- **HLD + schema design**: [`hld/HLD.pdf`](hld/HLD.pdf) — architecture, flows and table design
+- **HLD + schema design**: [`hld and schema design/Hld and Schema design.pdf`](hld%20and%20schema%20design/Hld%20and%20Schema%20design.pdf) — architecture, flows and table design
 - **Schema DDL**: [`docs/schema.sql`](docs/schema.sql) (the live source of truth is `backend/models.py`)
 - **Backend code**: [`backend/`](backend/)
 - **Frontend code**: [`frontend/`](frontend/)
