@@ -12,8 +12,10 @@ export default function App() {
           <p className="tagline">British auction — bids in the final minutes extend the close</p>
         </div>
         <nav className="nav">
-          <NavLink to="/" end>Auctions</NavLink>
-          <NavLink to="/create">New RFQ</NavLink>
+          <NavLink to="/" end className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
+            Auctions
+          </NavLink>
+          <Link to="/create" className="button">New RFQ</Link>
         </nav>
       </header>
       <Routes>
