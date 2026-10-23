@@ -13,12 +13,12 @@ to the deadline extend the auction automatically — up to a hard forced-close c
 
 ![Auction details mid-auction](docs/screenshots/detail.png)
 
-## Deliverables
+## Design documents & deliverables
 
-- HLD: `docs/HLD.pdf`
-- Schema: `docs/schema.sql` (and `backend/models.py`)
-- Backend: `backend/`
-- Frontend: `frontend/`
+- **HLD + schema design**: [`docs/HLD.pdf`](docs/HLD.pdf) — architecture, flows and table design
+- **Schema DDL**: [`docs/schema.sql`](docs/schema.sql) (the live source of truth is `backend/models.py`)
+- **Backend code**: [`backend/`](backend/)
+- **Frontend code**: [`frontend/`](frontend/)
 
 ## How the auction works
 
