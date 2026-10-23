@@ -41,6 +41,7 @@ app = FastAPI(title="RFQ Auction", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_origin_regex=r"https://british-auction-rfq.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )
