@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createRfq } from '../api'
 
@@ -29,6 +29,10 @@ export default function CreateRfq() {
   const navigate = useNavigate()
   const [error, setError] = useState(null)
   const [form, setForm] = useState(defaults)
+
+  useEffect(() => {
+    document.title = 'New RFQ · RFQ Auction'
+  }, [])
 
   const set = (e) =>
     setForm({

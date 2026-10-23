@@ -18,23 +18,43 @@ const inTab = (r, tab) =>
 export default function AuctionList() {
   const navigate = useNavigate()
   const [rfqs, setRfqs] = useState(null)
-  const [error, setError] = useState(null)
+  const [slow, setSlow] = useState(false)
   const [tab, setTab] = useState('All')
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    listRfqs().then(setRfqs).catch((e) => setError(e.message))
-    // poll so statuses flip and new lowest bids appear; ignore transient failures
-    const poll = setInterval(() => listRfqs().then(setRfqs).catch(() => {}), 5000)
+    document.title = 'Auctions · RFQ Auction'
+  }, [])
+
+  useEffect(() => {
+    // keep retrying until the first load succeeds — the free-tier backend may be asleep
+    const load = () => listRfqs().then(setRfqs).catch(() => {})
+    load()
+    const poll = setInterval(load, 5000)
     const tick = setInterval(() => setTick((x) => x + 1), 1000)
+    const slowTimer = setTimeout(() => setSlow(true), 3000)
     return () => {
       clearInterval(poll)
       clearInterval(tick)
+      clearTimeout(slowTimer)
     }
   }, [])
 
-  if (error) return <p className="error">Could not load RFQs: {error}</p>
-  if (!rfqs) return <p>Loading…</p>
+  if (!rfqs) {
+    return (
+      <p className="muted">
+        {slow ? 'Waking up the server — free hosting, this can take up to a minute.' : 'Loading…'}
+      </p>
+    )
+  }
+
+  const open = (id) => navigate(`/rfqs/${id}`)
+  const openOnKey = (e, id) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      open(id)
+    }
+  }
 
   const shown = rfqs.filter((r) => inTab(r, tab))
   const active = rfqs.filter((r) => r.status === 'Active').length
@@ -62,7 +82,7 @@ export default function AuctionList() {
           {shown.length === 0 ? (
             <p className="muted">No {tab.toLowerCase()} auctions.</p>
           ) : (
-            <table>
+            <table className="stack">
               <thead>
                 <tr>
                   <th>RFQ</th>
@@ -74,27 +94,36 @@ export default function AuctionList() {
               </thead>
               <tbody>
                 {shown.map((r) => (
-                  <tr key={r.id} className="row-link" onClick={() => navigate(`/rfqs/${r.id}`)}>
-                    <td>
-                      <Link to={`/rfqs/${r.id}`}>{r.name}</Link>
-                      <span className="ref">{r.reference_id}</span>
+                  <tr
+                    key={r.id}
+                    className="row-link"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => open(r.id)}
+                    onKeyDown={(e) => openOnKey(e, r.id)}
+                  >
+                    <td className="row-title">
+                      <Link to={`/rfqs/${r.id}`} tabIndex={-1}>{r.name}</Link>
+                      <span className="ref mono">{r.reference_id}</span>
                     </td>
-                    <td>
+                    <td className="row-pin">
                       <span className={`badge ${r.status.toLowerCase().replace(' ', '-')}`}>
                         {r.status}
                       </span>
-                      <span className="mode">{r.british_auction ? 'British' : 'Standard'}</span>
+                      {!r.british_auction && <span className="mode">Standard</span>}
                     </td>
-                    <td>
+                    <td data-label="Lowest bid">
                       {r.lowest_bid != null ? `${money(r.lowest_bid)} · ${r.lowest_carrier}` : '—'}
                     </td>
-                    <td>
+                    <td data-label="Closes">
                       {when(r.current_close_at)}
                       {r.status === 'Active' && (
                         <span className="muted"> · {closesIn(r.current_close_at)}</span>
                       )}
                     </td>
-                    <td>{r.british_auction ? when(r.forced_close_at) : '—'}</td>
+                    <td data-label="Forced close">
+                      {r.british_auction ? when(r.forced_close_at) : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>

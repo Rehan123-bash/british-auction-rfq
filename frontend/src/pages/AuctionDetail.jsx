@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getRfq, money, submitBid, subscribeToRfq, when } from '../api'
-
-const fmtDay = (iso) => new Date(iso).toLocaleDateString()
+import { getRfq, money, submitBid, subscribeToRfq, when, whenDay } from '../api'
 
 const TRIGGER_LABELS = {
   any_bid: 'any new bid',
@@ -17,14 +15,30 @@ function countdown(secs) {
   return h > 0 ? `${h}:${pad(m)}:${pad(secs % 60)}` : `${pad(m)}:${pad(secs % 60)}`
 }
 
+function ago(iso) {
+  const secs = Math.max(0, Math.floor((Date.now() - new Date(iso)) / 1000))
+  if (secs < 45) return 'just now'
+  const mins = Math.round(secs / 60)
+  if (mins < 60) return `${mins} min ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
+}
+
 export default function AuctionDetail() {
   const { id } = useParams()
   const [rfq, setRfq] = useState(null)
   const [error, setError] = useState(null)
+  const [slow, setSlow] = useState(false)
+  const [live, setLive] = useState(true)
   const [flash, setFlash] = useState(null)   // carrier whose row just changed
   const [banner, setBanner] = useState(null) // "extended to …" strip
   const prev = useRef(null)
   const [, setTick] = useState(0)
+
+  useEffect(() => {
+    document.title = rfq ? `${rfq.name} · RFQ Auction` : 'RFQ Auction'
+  }, [rfq?.name])
 
   // 1s re-render so the countdown ticks even between stream messages
   useEffect(() => {
@@ -53,14 +67,34 @@ export default function AuctionDetail() {
       prev.current = next
       setRfq(next)
     }
-    getRfq(id).then(apply).catch((e) => setError(e.message))
-    return subscribeToRfq(id, apply)
+
+    let retry
+    const load = () =>
+      getRfq(id).then(apply).catch((e) => {
+        if (e.status) setError(e.message)       // the api answered: a real error like 404
+        else retry = setTimeout(load, 5000)     // asleep or unreachable: keep trying
+      })
+    load()
+    const slowTimer = setTimeout(() => setSlow(true), 3000)
+    const unsubscribe = subscribeToRfq(id, apply, setLive)
+    return () => {
+      clearTimeout(retry)
+      clearTimeout(slowTimer)
+      unsubscribe()
+    }
   }, [id])
 
   if (error) return <p className="error">{error}</p>
-  if (!rfq) return <p>Loading…</p>
+  if (!rfq) {
+    return (
+      <p className="muted">
+        {slow ? 'Waking up the server — free hosting, this can take up to a minute.' : 'Loading…'}
+      </p>
+    )
+  }
 
   const secsLeft = Math.max(0, Math.floor((new Date(rfq.current_close_at) - Date.now()) / 1000))
+  const over = rfq.status === 'Closed' || rfq.status === 'Force Closed'
   const l1 = rfq.bids[0]
 
   return (
@@ -71,25 +105,41 @@ export default function AuctionDetail() {
         <div>
           <h2>{rfq.name}</h2>
           <p className="muted">
-            {rfq.reference_id} · Pickup / service {fmtDay(rfq.service_date)}
+            <span className="mono">{rfq.reference_id}</span> · Pickup / service {whenDay(rfq.service_date)}
           </p>
         </div>
-        <span className={`badge ${rfq.status.toLowerCase().replace(' ', '-')}`}>
-          {rfq.status}
-        </span>
+        <div className="header-right">
+          <span className={`badge ${rfq.status.toLowerCase().replace(' ', '-')}`}>
+            {rfq.status}
+          </span>
+          <span className={live ? 'live' : 'live down'}>
+            ● {live ? 'Live' : 'Reconnecting…'}
+          </span>
+        </div>
       </div>
+
+      {rfq.status === 'Active' && (
+        <div className="stickybar">
+          <span className="stickybar-label">Closes in</span>
+          <span className={'countdown' + (secsLeft < 120 ? ' danger' : '')}>
+            {countdown(secsLeft)}
+          </span>
+        </div>
+      )}
 
       {banner && <div className="banner">{banner}</div>}
 
       <div className="meta-grid">
         <div className="meta">
-          <span className="meta-label">Closes in</span>
+          <span className="meta-label">{over ? 'Closed' : 'Closes in'}</span>
           {rfq.status === 'Active' ? (
-            <span className={secsLeft < 120 ? 'danger' : undefined}>{countdown(secsLeft)}</span>
+            <span className={'countdown' + (secsLeft < 120 ? ' danger' : '')}>
+              {countdown(secsLeft)}
+            </span>
           ) : rfq.status === 'Upcoming' ? (
             `starts ${when(rfq.bid_start_at)}`
           ) : (
-            'ended'
+            'Ended'
           )}
         </div>
         <div className="meta">
@@ -118,32 +168,40 @@ export default function AuctionDetail() {
         {rfq.bids.length === 0 ? (
           <p className="muted">No quotes yet.</p>
         ) : (
-          <table>
+          <table className="stack">
             <thead>
               <tr>
                 <th>Rank</th>
                 <th>Carrier</th>
-                <th>Freight</th>
-                <th>Origin</th>
-                <th>Destination</th>
-                <th>Total</th>
-                <th>Transit (days)</th>
+                <th className="num">Freight</th>
+                <th className="num">Origin</th>
+                <th className="num">Destination</th>
+                <th className="num">Total</th>
+                <th className="num">Transit (days)</th>
                 <th>Valid Until</th>
                 <th>Submitted</th>
               </tr>
             </thead>
             <tbody>
               {rfq.bids.map((b) => (
-                <tr key={b.carrier_name} className={flash === b.carrier_name ? 'flash' : undefined}>
-                  <td><strong>{b.rank}</strong></td>
-                  <td>{b.carrier_name}</td>
-                  <td>{money(b.freight_charges)}</td>
-                  <td>{money(b.origin_charges)}</td>
-                  <td>{money(b.destination_charges)}</td>
-                  <td><strong>{money(b.total)}</strong></td>
-                  <td>{b.transit_time_days}</td>
-                  <td>{fmtDay(b.quote_valid_until)}</td>
-                  <td>{when(b.submitted_at)}</td>
+                <tr
+                  key={b.carrier_name}
+                  className={
+                    (b.rank === 'L1' ? 'l1-row' : '') +
+                    (flash === b.carrier_name ? ' flash' : '')
+                  }
+                >
+                  <td className="row-pin">
+                    <span className={b.rank === 'L1' ? 'rank l1' : 'rank'}>{b.rank}</span>
+                  </td>
+                  <td className="row-title"><strong>{b.carrier_name}</strong></td>
+                  <td data-label="Freight" className="num">{money(b.freight_charges)}</td>
+                  <td data-label="Origin" className="num">{money(b.origin_charges)}</td>
+                  <td data-label="Destination" className="num">{money(b.destination_charges)}</td>
+                  <td data-label="Total" className="num"><strong>{money(b.total)}</strong></td>
+                  <td data-label="Transit (days)" className="num">{b.transit_time_days}</td>
+                  <td data-label="Valid until">{whenDay(b.quote_valid_until)}</td>
+                  <td data-label="Submitted">{when(b.submitted_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -152,13 +210,13 @@ export default function AuctionDetail() {
       </section>
 
       {rfq.status === 'Active' ? (
-        <BidForm rfqId={rfq.id} />
+        <BidForm rfqId={rfq.id} bids={rfq.bids} />
       ) : rfq.status === 'Upcoming' ? (
         <p className="muted">Bidding has not started yet.</p>
       ) : (
-        <p className="closed-note">
+        <section className="card closed-panel">
           Bidding closed — {l1 ? `L1: ${l1.carrier_name} ${money(l1.total)}` : 'no quotes received'}
-        </p>
+        </section>
       )}
 
       <section>
@@ -171,7 +229,7 @@ export default function AuctionDetail() {
               <li key={i}>
                 <span className={`tag ${e.type}`}>{e.type}</span>
                 <span>{e.message}</span>
-                <span className="muted">{when(e.at)}</span>
+                <span className="muted mono" title={when(e.at)}>{ago(e.at)}</span>
               </li>
             ))}
           </ul>
@@ -190,7 +248,7 @@ const EMPTY_QUOTE = {
   quote_valid_until: '',
 }
 
-function BidForm({ rfqId }) {
+function BidForm({ rfqId, bids }) {
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [form, setForm] = useState(EMPTY_QUOTE)
@@ -201,12 +259,21 @@ function BidForm({ rfqId }) {
     Number(form.origin_charges || 0) +
     Number(form.destination_charges || 0)
 
+  // the carrier's current quote, if they have bid on this rfq before
+  const existing = bids.find((b) => b.carrier_name === form.carrier_name.trim())
+
   async function onSubmit(e) {
     e.preventDefault()
+    if (existing && total >= existing.total) {
+      setNotice(null)
+      setError(`new total must be lower than your previous quote (${money(existing.total)})`)
+      return
+    }
     setError(null)
     try {
       const r = await submitBid(rfqId, {
         ...form,
+        carrier_name: form.carrier_name.trim(),
         freight_charges: Number(form.freight_charges),
         origin_charges: Number(form.origin_charges),
         destination_charges: Number(form.destination_charges),
@@ -256,6 +323,11 @@ function BidForm({ rfqId }) {
           </label>
           <p className="total-preview">Total: <strong>{money(total)}</strong></p>
         </div>
+        {existing && (
+          <p className="muted">
+            Your last quote was {money(existing.total)} — the new total must be lower.
+          </p>
+        )}
         {error && <p className="error">{error}</p>}
         {notice && <p className="notice">{notice}</p>}
         <button className="button" type="submit">Submit Quote</button>
