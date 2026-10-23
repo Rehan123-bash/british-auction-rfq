@@ -3,6 +3,11 @@ from datetime import timedelta
 import models
 
 
+def short_time(dt):
+    # clock format used in audit messages, matching the UI: "9:54 PM"
+    return dt.strftime("%I:%M %p").lstrip("0")
+
+
 def status(rfq, now):
     if now < rfq.bid_start_at:
         return "Upcoming"

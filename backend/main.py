@@ -182,7 +182,8 @@ def submit_bid(rfq_id: int, body: BidCreate, db: Session = Depends(get_db)):
     ext = auction.maybe_extend(rfq, ranking_before, ranking_after, now)
     if ext:
         db.add(models.ActivityLog(rfq_id=rfq.id, type="extension", created_at=now,
-                                  message=f"closing time extended to {iso(ext['new_close'])} — {ext['reason']}"))
+                                  message=f"closing time extended to {auction.short_time(ext['new_close'])}"
+                                          f" — {ext['reason']}"))
 
     db.commit()
     return {"id": bid.id, "total": total,
