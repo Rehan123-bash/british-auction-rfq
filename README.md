@@ -9,6 +9,10 @@ A reverse-auction platform for freight RFQs. A buyer publishes an RFQ with a bid
 carriers submit quotes against it, the lowest total holds the L1 rank, and bids arriving close
 to the deadline extend the auction automatically — up to a hard forced-close ceiling.
 
+![Auction listing](docs/screenshots/listing.png)
+
+![Auction details mid-auction](docs/screenshots/detail.png)
+
 ## Deliverables
 
 - HLD: `docs/HLD.pdf`
